@@ -15,19 +15,30 @@ export default class App extends Component<Props> {
 
   state = {
     items: [],
+    refreshing: false,
   }
   page = 0;
 
   // WebAPIを叩く処理. fetchAPIを使用する
-  fetchRepositories() {
-    const newPage = this.page + 1;
+  fetchRepositories(refreshing = false) {
+    const newPage = refreshing ? 1 : this.page + 1;
+
+    this.setState({ refreshing });
     fetch('https://api.github.com/search/repositories?q=react&page=${newPage}')
       // 扱いやすいようにjson形式で受け取る. fetchAPIでは基本形.
       .then(response => response.json())
       .then(({ items }) => {
         this.page = newPage;
-        // 前回表示していたItemListと合成したリストを生成
-        this.setState({ items: [...this.state.items, ...items] })});
+        if (refreshing) {
+          // 更新中の場合はUI上は変えない.
+          // refreshingをfalseにして更新中インジケーターを非表示にする
+          this.setState({ items, refreshing: false });
+        } else {
+          // 前回表示していたItemListと合成したリストを生成
+          this.setState({ items: [...this.state.items, ...items],
+            refreshing: false })
+        }
+      });
       // レスポンス全体を取得したい場合は以下のように処理する
       // .then(response => console.log(response));
   }
@@ -48,7 +59,11 @@ export default class App extends Component<Props> {
           // keyが存在していない場合にはitemIDを設定する
           keyExtractor={(item) => item.id}
           // リストの最下部に到達した場合の処理
-          onEndReached={() => this.fetchRepositories()}/>
+          onEndReached={() => this.fetchRepositories()}
+          // 引っ張って更新するようにする
+          onRefresh={() => this.fetchRepositories(true)}
+          // 更新中かどうかをstateで管理
+          refreshing={this.state.refreshing}/>
       </View>
     );
   }
