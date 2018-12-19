@@ -27,9 +27,9 @@ export default createAppContainer (
       // 詳細画面のクラス
       screen: Detail,
       // ヘッダーにタイトルを設定
-      navigationOptions: {
-        title: 'Detail',
-      },
+      navigationOptions: ({ navigation }) => ({
+        title: navigation.state.params.item.name,
+      }),
     },
   },{
     // 初期画面の設定
