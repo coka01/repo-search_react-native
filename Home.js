@@ -8,7 +8,7 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View,
-  TouchableOpacity, FlatList} from 'react-native';
+  TouchableOpacity, FlatList, TextInput, Image} from 'react-native';
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -16,6 +16,7 @@ export default class App extends Component<Props> {
   state = {
     items: [],
     refreshing: false,
+    text: '',
   }
   page = 0;
 
@@ -24,7 +25,7 @@ export default class App extends Component<Props> {
     const newPage = refreshing ? 1 : this.page + 1;
 
     this.setState({ refreshing });
-    fetch('https://api.github.com/search/repositories?q=react&page=${newPage}')
+    fetch('https://api.github.com/search/repositories?q=' + this.state.text + '&page= ' + newPage)
       // 扱いやすいようにjson形式で受け取る. fetchAPIでは基本形.
       .then(response => response.json())
       .then(({ items }) => {
@@ -51,18 +52,30 @@ export default class App extends Component<Props> {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity
-          style={{marginTop: 60}}
-          onPress={() => this.fetchRepositories()}>
-          <Text>Fetch</Text>
-        </TouchableOpacity>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.input}
+            onChangeText={(text) => this.setState({ text })} />
+          <TouchableOpacity
+            onPress={() => this.fetchRepositories(true)}>
+            <Text style={styles.searchText}>Search</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           // apiから取得したitemsをdataとする
           data={this.state.items}
           // 各項目の名前をテキストで出力する
           renderItem={({ item }) =>
-            <TouchableOpacity onPress={() => this.navigateToDetail(item)}>
-              <Text style={{padding: 20}}>{item.name}</Text>
+            <TouchableOpacity
+              style={{padding: 10}}
+              onPress={() => this.navigateToDetail(item)}>
+              <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+                {item.name}
+              </Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Image style={styles.ownerIcon} source={{ uri: item.owner.avatar_url }}/>
+                <Text style={styles.ownerName}>{item.owner.login}</Text>
+              </View>
             </TouchableOpacity>
           }
           // keyが存在していない場合にはitemIDを設定する
@@ -82,5 +95,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E5ECEE',
+  },
+  inputWrapper: {
+    padding: 20,
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#EEE',
+    borderRadius: 4,
+  },
+  searchText: {
+    padding: 10,
+  },
+  ownerIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 5,
+  },
+  ownerName: {
+    fontSize: 14
   },
 });
