@@ -8,7 +8,7 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View,
-  TouchableOpacity, FlatList, TextInput} from 'react-native';
+  TouchableOpacity, FlatList, TextInput, Image} from 'react-native';
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -25,7 +25,7 @@ export default class App extends Component<Props> {
     const newPage = refreshing ? 1 : this.page + 1;
 
     this.setState({ refreshing });
-    fetch('https://api.github.com/search/repositories?q=${this.state.text}&page=${newPage}')
+    fetch('https://api.github.com/search/repositories?q=' + this.state.text + '&page= ' + newPage)
       // 扱いやすいようにjson形式で受け取る. fetchAPIでは基本形.
       .then(response => response.json())
       .then(({ items }) => {
@@ -66,8 +66,16 @@ export default class App extends Component<Props> {
           data={this.state.items}
           // 各項目の名前をテキストで出力する
           renderItem={({ item }) =>
-            <TouchableOpacity onPress={() => this.navigateToDetail(item)}>
-              <Text style={{padding: 20}}>{item.name}</Text>
+            <TouchableOpacity
+              style={{padding: 10}}
+              onPress={() => this.navigateToDetail(item)}>
+              <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+                {item.name}
+              </Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Image style={styles.ownerIcon} source={{ uri: item.owner.avatar_url }}/>
+                <Text style={styles.ownerName}>{item.owner.login}</Text>
+              </View>
             </TouchableOpacity>
           }
           // keyが存在していない場合にはitemIDを設定する
@@ -102,5 +110,14 @@ const styles = StyleSheet.create({
   },
   searchText: {
     padding: 10,
+  },
+  ownerIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 5,
+  },
+  ownerName: {
+    fontSize: 14
   },
 });
