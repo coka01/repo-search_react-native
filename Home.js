@@ -8,7 +8,7 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View,
-  TouchableOpacity, FlatList, TextInput, Image} from 'react-native';
+  TouchableOpacity, FlatList, TextInput, Image, AppState} from 'react-native';
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -47,6 +47,26 @@ export default class App extends Component<Props> {
   navigateToDetail(item) {
     // 画面遷移処理. itemを渡してDetail側で受け取る
     this.props.navigation.navigate('Detail', { item })
+  }
+
+  // AppStateのライフサイクル
+  componentDidMount() {
+     AppState.addEventListener('change', this.onChangeState);
+  }
+
+  // AppStateのライフサイクル
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.onChangeState);
+  }
+
+  // アロー関数でthisに束縛する手間を省く
+  onChangeState = (appState) =>  {
+    console.log(appState);
+    // appState: active/inactive/background
+    if (appState === 'active') {
+      // バックグラウンドから復帰したときにテキストボックスに入っているワードで検索をかける
+      this.fetchRepositories(true);
+    }
   }
 
   render() {
